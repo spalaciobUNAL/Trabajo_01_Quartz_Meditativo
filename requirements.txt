@@ -1,0 +1,9 @@
+ipython==8.12.3
+matplotlib==3.10.7
+numpy==2.3.4
+pandas==2.3.3
+opencv-python>=4.8
+jupyterlab>=4.0
+ipykernel>=6.25
+tqdm>=4.65
+pillow

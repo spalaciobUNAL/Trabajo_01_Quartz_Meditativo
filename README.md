@@ -1,104 +1,117 @@
-# Trabajo_01_Quartz_Meditativo
-
-
 # Trabajo Práctico - Procesamiento Digital de Imágenes
 
-## Objetivos de Aprendizaje
-Al completar este trabajo práctico, los estudiantes serán capaces de:
-- Calibrar una cámara real y comprender los parámetros intrínsecos y extrínsecos.  
-- Aplicar operaciones fundamentales de procesamiento de imágenes a nivel de píxel.  
-- Implementar transformaciones geométricas (rotación, traslación).  
-- Realizar corrección y mejora de imágenes mediante análisis de histogramas.  
-- Implementar técnicas básicas de segmentación.  
-- Documentar y comunicar resultados técnicos de manera profesional.  
+## Descripción del Proyecto
 
-> **Nota:** Es posible que se solicite a cada estudiante evaluar de forma anónima el trabajo de sus compañeros. Esta evaluación podrá incidir en la nota individual.
+Este repositorio contiene la implementación completa del primer trabajo de Vision por computador, que abarca cinco áreas fundamentales: calibración de cámaras, transformaciones de intensidad, transformaciones geométricas, análisis de histogramas y segmentación por color. El proyecto está desarrollado en Python utilizando OpenCV, NumPy, Matplotlib y otras librerías especializadas.
 
----
+## Estructura del Proyecto
 
-## Entregables
-- Código Python organizado en **scripts** o **notebooks**.  
-- `README.md` con instrucciones de instalación y ejecución.  
-- Comentarios claros en todo el código.  
-- Estructura de carpetas organizada.  
-- `requirements.txt` con todas las dependencias.  
-- Documento en formato **Markdown** o **HTML**.  
-  - Extensión: **2000-3000 palabras**.  
-  - Debe incluir: **teoría, metodología, resultados y análisis**.  
-  - Visualizaciones de alta calidad.  
-  - Referencias bibliográficas en formato **APA**.  
-- Reporte de **contribución individual**.  
-
----
-
-## Actividades
-
-### 1. Calibración de Cámaras
-La calibración de cámara es esencial para cualquier aplicación de visión que requiera mediciones precisas o reconstrucción 3D. Permite:  
-- Corregir distorsiones de lente.  
-- Establecer la relación entre coordenadas del mundo real y píxeles.  
-- Obtener parámetros intrínsecos (matriz K, coeficientes de distorsión).  
-
-📎 [Guía de calibración](https://classroom.google.com/c/NzgwMDM2NDYwMzA5/m/ODEwMDkzMTg1MTgy/details)
-
-**Para el reporte, incluir:**
-- 4-6 imágenes con las esquinas detectadas (`cv2.drawChessboardCorners()`).  
-- Matriz de cámara **K**:
-
-```text
-K = [fx  0  cx]  
-    [0  fy  cy]  
-    [0   0   1]
+```
+Trabajo_01_Quartz_Meditativo/
+├── Calibracion_camara/                    # Calibración de cámara y corrección de distorsión
+│   ├── calibracion_paso_a_paso.ipynb     # Notebook principal de calibración
+│   ├── images/                           # Imágenes de buena calidad
+│   ├── images_opencv/                    # Imágenes de OpenCV
+│   ├── images_resized_1438x1080/         # Imágenes redimensionadas de buena calidad
+│   ├── images3/                          # Imágenes de mala calidad
+│   └── imgs_to_correct/                  # Imágenes para probar la corrección de distorsión
+├── Transformaciones_Dia_Noche/           # Transformaciones de intensidad
+│   ├── Transformación_imagenes.ipynb     # Notebook de transformaciones
+│   ├── casa_dia.jpg                     # Imagen de fachada en día
+│   └── casa_noche.jpg                   # Imagen de fachada en noche
+├── Rotacion_Traslacion_Ecualizacion/    # Transformaciones geométricas (rotación, traslación) y ecualización de histograma
+├── Segmentacion/                         # Segmentación por color
+│   ├── segmentacion_por_color.ipynb     # Notebook de segmentación
+│   ├── input/                           # Imágenes de entrada
+│   └── output/                          # Resultados de segmentación
+├── requirements.txt                      # Dependencias del proyecto
+├── Trabajo_01.md                        # Reporte del trabajo
+└── README.md                            # Este archivo
 ```
 
-- Coeficientes de distorsión: `k1, k2, p1, p2, k3`.  
-- Error RMS de reproyección (debe ser `< 0.5 píxeles`).  
-- Al menos 3 imágenes **originales vs corregidas**.  
-- Evidenciar la corrección en las esquinas (donde la distorsión es mayor).  
-- Responder:  
-  - ¿Qué tipo de distorsión predomina (barril, cojín)?  
-  - ¿La longitud focal `fx` es similar a `fy`? ¿Por qué podría diferir?  
-  - ¿El punto principal `(cx, cy)` está cerca del centro de la imagen?  
+### Reporte técnico del trabajo
+[!IMPORTANT]
+> [Reporte técnico del trabajo](https://github.com/spalaciobUNAL/Trabajo_01_Quartz_Meditativo/blob/main/Trabajo_01.md)
 
----
+## Requisitos del Sistema
 
-### 2. Transformaciones de Intensidad a Nivel de Píxel
-- Tomar **2 fotografías de la fachada** (6 am y 7 pm) desde el mismo punto.  
-- Implementar manualmente las siguientes operaciones:  
-  - Ajuste de brillo.  
-  - Ajuste de contraste.  
-  - Corrección gamma.  
-- Operaciones combinadas:  
-  - Suma `(A+B)`.  
-  - Resta `(A-B)`.  
-  - Multiplicación `(A*B)`.  
-  - División `(A/B)`.  
+- Python 3.8 o superior
+- Jupyter Notebook/Lab
+- Cámara web o dispositivo móvil (*opcional* en caso de replicar con otras imágenes)
 
----
+## Instalación
 
-### 3. Transformaciones Geométricas (Rotación y Traslación)
-- Crear una función que:  
-  1. Cargue una imagen.  
-  2. Aplique **5-8 transformaciones sucesivas** (traslaciones, rotaciones, escalas).  
-  3. Genere un **GIF animado o video** mostrando la secuencia.  
-  4. Guarde cada frame intermedio.  
+### 1. Clonar el repositorio
 
----
+```bash
+git clone https://github.com/spalaciobUNAL/Trabajo_01_Quartz_Meditativo.git
+cd Trabajo_01_Quartz_Meditativo
+```
 
-### 4. Distribución de Intensidades e Histogramas
-- Realizar **ecualización de histograma** (usando la función de distribución acumulada) en las imágenes de la fachada.  
-- Responder:  
-  - ¿Qué diferencias hay entre los histogramas de la imagen de día vs la de noche?  
-  - ¿Cuáles son las transformaciones de ecualización en cada caso?  
+### 2. Crear entorno virtual (recomendado)
 
----
+```bash
+# Crear entorno virtual
+python -m venv venv
 
-### 5. Segmentación de Imágenes
-- Capturar una escena con objetos de distintos colores (Universidad Nacional u oficina).  
-- Usar cámara de celular.  
-- Implementar:  
-  - Segmentación por color.  
-  - Conteo de cuántos objetos de cada color hay.  
-  - Cálculo del área de cada objeto.  
+# Activar entorno virtual
+# En Windows:
+venv\Scripts\activate
+# En Linux/Mac:
+source venv/bin/activate
+```
 
----
+### 3. Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+## Ejecución
+
+### 1. Calibración de Cámaras
+
+```bash
+cd Calibracion_camara
+jupyter notebook calibracion_paso_a_paso.ipynb
+```
+
+### 2. Transformaciones de Intensidad
+
+```bash
+cd Transformaciones_Dia_Noche
+jupyter notebook Transformación_imagenes.ipynb
+```
+
+### 3. Transformaciones Geométricas (Rotación y Traslación) y ecualización de histograma
+
+```bash
+cd Rotacion_Traslacion_Ecualizacion
+jupyter notebook Rotacion_Traslacion_Ecualizacion.ipynb
+```
+
+### 4. Segmentación por Color
+
+```bash
+cd Segmentacion
+jupyter notebook segmentacion_por_color.ipynb
+```
+
+## Dependencias
+
+El proyecto utiliza las siguientes librerías principales:
+
+- **OpenCV** (>=4.8): Procesamiento de imágenes y visión computacional
+- **NumPy** (2.3.4): Operaciones numéricas
+- **Matplotlib** (3.10.7): Visualización de datos
+- **Pandas** (2.3.3): Análisis de datos
+- **JupyterLab** (>=4.0): Entorno de desarrollo interactivo
+- **Pillow**: Procesamiento de imágenes adicional
+
+## Autores
+
+- Sebastián Palacio (spalaciob@unal.edu.co)
+- Juan Manuel Sanchez Restrepo (jsanchezrestrepo@unal.edu.co)
+- Henrry Uribe Cabrera Ordonez (hcabrerao@unal.edu.co)
+- Laura Sanin Colorado (lsaninc@unal.edu.co)
+

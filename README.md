@@ -1,4 +1,4 @@
-# Trabajo Práctico - Procesamiento Digital de Imágenes
+# Trabajo 01 - Vision por computador - Quartz Meditativo
 
 ## Descripción del Proyecto
 
@@ -30,7 +30,7 @@ Trabajo_01_Quartz_Meditativo/
 ```
 
 ### Reporte técnico del trabajo
-[!IMPORTANT]
+> [!IMPORTANT]
 > [Reporte técnico del trabajo](https://github.com/spalaciobUNAL/Trabajo_01_Quartz_Meditativo/blob/main/Trabajo_01.md)
 
 ## Requisitos del Sistema

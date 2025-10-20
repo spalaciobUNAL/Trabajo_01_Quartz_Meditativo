@@ -160,19 +160,103 @@ Las operaciones aritméticas entre imágenes permiten combinar información de m
 
 Estas operaciones requieren manejo cuidadoso de la saturación y la división por cero.
 
-### 2.5 Ecualización de Histograma
+### 2.5 Transformaciones Geométricas
 
-La ecualización de histograma redistribuye las intensidades de la imagen para utilizar todo el rango dinámico disponible, mejorando el contraste global. Se basa en la función de distribución acumulada (CDF):
+Las transformaciones geométricas alteran la posición, orientación o tamaño de los píxeles de una imagen, manteniendo su contenido original. Son esenciales en tareas como alineación, registro de imágenes y corrección de perspectiva.
+
+#### 2.5.1 Rotación
+
+La rotación gira la imagen un ángulo $\theta$ respecto a un punto de referencia (típicamente el centro). Se representa mediante la matriz de rotación 2D:
 
 $
-h(v) = \text{round}\left(\frac{\text{CDF}(v) - \text{CDF}_{min}}{(M \times N) - \text{CDF}_{min}} \times (L-1)\right)
+R(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
 $
 
-donde $M \times N$ es el tamaño de la imagen y $L$ es el número de niveles de intensidad.
+La transformación de un punto $(x, y)$ a su nueva posición $(x', y')$ se calcula como:
 
-### 2.6 Segmentación por Color
+$
+\begin{bmatrix} x' \\ y' \end{bmatrix} = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix} \begin{bmatrix} x - c_x \\ y - c_y \end{bmatrix} + \begin{bmatrix} c_x \\ c_y \end{bmatrix}
+$
 
-#### 2.6.1 Fundamentos de color
+donde $(c_x, c_y)$ son las coordenadas del centro de rotación.
+
+#### 2.5.2 Traslación
+
+La traslación desplaza todos los píxeles una distancia fija en los ejes X e Y. Se describe mediante:
+
+$
+T = \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \end{bmatrix}
+$
+
+donde $t_x$ y $t_y$ son los desplazamientos horizontales y verticales respectivamente. La nueva posición de un punto es:
+
+$
+\begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}
+$
+
+#### 2.5.3 Escalado
+
+El escalado cambia el tamaño de la imagen multiplicando sus dimensiones por factores de escala. La matriz de escalado es:
+
+$
+S = \begin{bmatrix} s_x & 0 \\ 0 & s_y \end{bmatrix}
+$
+
+donde $s_x$ y $s_y$ son los factores de escala en X e Y respectivamente. Un valor $s > 1$ amplía la imagen, mientras que $s < 1$ la reduce. Para escalado uniforme, $s_x = s_y = s$.
+
+#### 2.5.4 Transformaciones Afines
+
+En OpenCV, estas transformaciones se combinan mediante transformaciones afines que se aplican con `cv2.warpAffine()`. Una transformación afín general se representa como:
+
+$
+\begin{bmatrix} x' \\ y' \end{bmatrix} = \begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} + \begin{bmatrix} b_1 \\ b_2 \end{bmatrix}
+$
+
+Esta formulación permite combinar rotación, escala, traslación y cizallamiento en una única operación.
+
+### 2.6 Histogramas de Imágenes
+
+Un histograma representa la distribución de los niveles de intensidad de los píxeles en una imagen. Para una imagen en escala de grises con $L$ niveles de intensidad (típicamente $L = 256$), el histograma $h(i)$ cuenta el número de píxeles con intensidad $i$:
+
+$
+h(i) = \#\{(x, y) : I(x, y) = i\}, \quad i = 0, 1, \ldots, L-1
+$
+
+Características del histograma:
+- En imágenes **claras**, el histograma se concentra en valores altos (cercanos a 255)
+- En imágenes **oscuras**, predomina en valores bajos (cercanos a 0)
+- En imágenes **de buen contraste**, el histograma cubre todo el rango tonal
+
+El histograma normalizado se obtiene dividiendo por el número total de píxeles:
+
+$
+p(i) = \frac{h(i)}{M \times N}
+$
+
+donde $M \times N$ es el tamaño de la imagen.
+
+### 2.7 Ecualización de Histograma
+
+La ecualización de histograma es una técnica de mejora del contraste que redistribuye los niveles de intensidad para utilizar todo el rango dinámico disponible. Se basa en la función de distribución acumulativa (CDF):
+
+$
+\text{CDF}(i) = \sum_{j=0}^{i} p(j)
+$
+
+La transformación de ecualización mapea cada intensidad $i$ a un nuevo valor:
+
+$
+h(i) = \text{round}\left(\frac{\text{CDF}(i) - \text{CDF}_{min}}{(M \times N) - \text{CDF}_{min}} \times (L-1)\right)
+$
+
+Esta operación tiende a "aplanar" el histograma, distribuyendo las intensidades de manera más uniforme y aumentando el contraste global. Es especialmente útil para:
+- Revelar detalles en zonas oscuras o sobreexpuestas
+- Mejorar imágenes con iluminación deficiente
+- Normalizar el contraste antes de análisis cuantitativos
+
+### 2.8 Segmentación por Color
+
+#### 2.8.1 Fundamentos de color
 
 La **segmentación por color** separa una imagen en regiones basándose en similitudes cromáticas.  
 El **espacio de color HSV (Hue, Saturation, Value)** es particularmente útil porque desacopla el color puro de la iluminación:
@@ -185,27 +269,27 @@ Este espacio facilita la segmentación porque el **matiz es más robusto a varia
 
 El espacio **Lab**, por su parte, es perceptualmente uniforme e independiente del dispositivo, lo que lo hace ideal para análisis cromáticos más precisos.  
 
-#### 2.6.2 Filtrado Gaussiano
+#### 2.8.2 Filtrado Gaussiano
 - Reduce ruido sin eliminar bordes importantes.  
 - Parámetro clave: desviación estándar (σ).  
 
-#### 2.6.3 Detección de bordes
+#### 2.8.3 Detección de bordes
 - **Sobel:** calcula derivadas espaciales.  
 - **Canny:** suavizado → gradiente → supresión no máxima → histéresis.
 
-#### 2.6.4 Morfología matemática
+#### 2.8.4 Morfología matemática
 - **Apertura:** elimina ruido pequeño.  
 - **Cierre:** rellena huecos.  
 - **Dilatación/Erosión:** controlan grosor de regiones.  
 - **Gradiente:** diferencia entre dilatación y erosión → resalta bordes.
 
-#### 2.6.5 Transformada de distancia
+#### 2.8.5 Transformada de distancia
 - Mide distancia desde cada píxel del objeto al fondo.  
 - Los máximos locales se usan como marcadores para *Watershed*.
 
-#### 2.6.6. Algoritmo Watershed
+#### 2.8.6 Algoritmo Watershed
 - Interpreta la imagen como una topografía.  
-- Inunda desde los marcadores hasta que las “cuencas” se encuentran, delimitando objetos.
+- Inunda desde los marcadores hasta que las "cuencas" se encuentran, delimitando objetos.
 
 ---
 
@@ -461,11 +545,197 @@ Se realizó una evaluación cualitativa visual analizando:
 
 ## 5. Transformaciones Geométricas
 
+### 5.1 Metodología
+
+#### 5.1.1 Materiales y Equipamiento
+
+Se utilizaron las mismas fotografías de la fachada (diurna y nocturna) empleadas en la sección de transformaciones de intensidad.
+
+#### 5.1.2 Implementación de las Transformaciones
+
+Se implementaron tres transformaciones geométricas utilizando OpenCV:
+
+1. Rotación: Aplicación de `cv2.getRotationMatrix2D()` y `cv2.warpAffine()` para rotar la imagen 30° alrededor de su centro.
+
+2. Traslación: Desplazamiento de 50 píxeles en X y 30 píxeles en Y mediante matriz de transformación afín.
+    
+3. Escalado: Ampliación al 150% del tamaño original usando `cv2.resize()` con factor de escala 1.5.
+
+#### 5.1.3 Visualización Dinámica mediante GIF
+
+Se generó una animación de 8 fotogramas combinando rotación progresiva (incrementos de 15°) con escalado decreciente (1.0 a 0.65), guardada usando `PIL/imageio`.
+
+#### 5.1.4 Métricas de Evaluación
+
+Evaluación cualitativa de preservación estructural, artefactos en bordes, áreas de padding y calidad de interpolación.
+
+### 5.2 Resultados
+
+#### 5.2.1 Transformaciones Individuales
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/transformaciones.png" alt="Transformaciones geométricas aplicadas" width="800">
+</p>
+
+**Rotación (30°):**
+- La imagen se rota correctamente alrededor de su centro
+- Aparecen regiones negras en las esquinas debido a que la rotación no es múltiplo de 90°
+- El contenido de la imagen se preserva sin distorsión aparente
+- La interpolación bilineal (por defecto en OpenCV) proporciona bordes suaves
+
+**Traslación (50px en X, 30px en Y):**
+- La imagen se desplaza correctamente en ambas direcciones
+- Las regiones que quedan vacías se rellenan con píxeles negros (padding)
+- No hay distorsión ni pérdida de información en la región visible
+- El desplazamiento es uniforme en toda la imagen
+
+**Escalado (factor 1.5):**
+- La imagen se amplía al 150% de su tamaño original
+- Se recorta automáticamente para mantener las dimensiones originales de salida
+- Los detalles se mantienen gracias a la interpolación
+- Ligera pérdida de nitidez debido a la interpolación, característica esperada en ampliaciones
+
+#### 5.2.2 Secuencia Animada de Transformaciones
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/transformaciones.gif" alt="GIF de transformaciones progresivas" width="600">
+</p>
+
+El GIF animado muestra la evolución progresiva de las transformaciones combinadas:
+
+**Observaciones principales:**
+1. **Rotación progresiva:** La imagen gira suavemente, permitiendo apreciar cómo cambian las perspectivas de los elementos arquitectónicos
+2. **Escalado decreciente:** La reducción gradual del tamaño hace que la imagen "retroceda" visualmente, creando un efecto de alejamiento
+3. **Combinación de efectos:** La aplicación simultánea de rotación y escala genera una animación dinámica que facilita la comprensión de cómo interactúan ambas transformaciones
+4. **Áreas negras crecientes:** A medida que aumenta la rotación y disminuye la escala, las regiones de padding negro se vuelven más prominentes
+
+#### 5.2.3 Consideraciones sobre Interpolación
+
+Las transformaciones geométricas requieren interpolación para calcular los valores de píxeles en posiciones no enteras. OpenCV utiliza interpolación bilineal por defecto, que proporciona un buen balance entre calidad y velocidad. Esto es especialmente relevante en la rotación, donde cada píxel de salida puede mapearse a una posición fraccionaria en la imagen original.
+
+### 5.3 Conclusiones de las Transformaciones Geométricas
+
+1. Las transformaciones geométricas (rotación, traslación, escalado) modifican exitosamente la posición, orientación y tamaño de las imágenes sin alterar su contenido estructural.
+
+2. La combinación de múltiples transformaciones mediante matrices afines permite realizar operaciones complejas de manera eficiente en una única pasada.
+
+3. La visualización dinámica mediante GIF es una herramienta efectiva para comprender el comportamiento progresivo de las transformaciones y su interacción.
+
+4. Las transformaciones geométricas son fundamentales en aplicaciones de visión por computador, como registro de imágenes, alineación de vistas múltiples y corrección de perspectiva.
+
+5. La aparición de regiones de padding (píxeles negros) es inherente a estas transformaciones cuando la imagen transformada no cubre completamente el canvas de salida.
 
 ---
 
 ## 6. Distribución de Intensidades e Histogramas
 
+### 6.1 Metodología
+
+#### 6.1.1 Materiales y Equipamiento
+
+Se utilizaron las mismas imágenes de la fachada capturadas en condiciones diurnas y nocturnas.
+
+#### 6.1.2 Cálculo de Histogramas
+
+Los histogramas se calcularon con `cv2.calcHist()` sobre imágenes convertidas a escala de grises, contando la frecuencia de cada nivel de intensidad (0-255). Se normalizaron dividiendo por el total de píxeles para permitir comparaciones.
+
+#### 6.1.3 Ecualización de Histograma
+
+Se aplicó `cv2.equalizeHist()` para redistribuir los niveles de intensidad según la función de distribución acumulativa (CDF), buscando "aplanar" el histograma y aprovechar todo el rango dinámico [0, 255].
+
+#### 6.1.4 Métricas de Evaluación
+
+Evaluación cualitativa y cuantitativa de la forma del histograma, contraste visual y diferencias entre condiciones de iluminación diurna y nocturna.
+
+### 6.2 Resultados
+
+#### 6.2.1 Imágenes Originales
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/imagenes_originales.png" alt="Imágenes originales día y noche" width="600">
+</p>
+
+Las dos imágenes presentan características de iluminación muy diferentes:
+- **Imagen diurna:** Iluminación natural abundante, buena distribución tonal
+- **Imagen nocturna:** Iluminación artificial localizada, predominio de tonos oscuros
+
+#### 6.2.2 Comparación de Histogramas Día vs Noche
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/comparacion_histogramas.png" alt="Comparación de histogramas" width="600">
+</p>
+
+**Análisis del histograma diurno (amarillo):**
+- Distribución amplia que cubre la mayor parte del rango tonal
+- Mayor concentración en valores medios-altos (150-200), correspondientes al cielo y superficies iluminadas
+- Presencia significativa en tonos bajos (50-100), correspondientes a ventanas y sombras
+- Histograma relativamente balanceado, indicando buen contraste natural
+
+**Análisis del histograma nocturno (azul):**
+- Fuerte concentración en valores bajos (0-100), predominio de zonas oscuras
+- Picos significativos en el rango bajo, correspondientes a las grandes áreas en sombra
+- Distribución limitada en valores altos, restringida a zonas directamente iluminadas por lámparas
+- Histograma sesgado hacia la izquierda, indicando imagen subexpuesta
+
+**Diferencias clave:**
+1. El histograma diurno ocupa un rango tonal mucho más amplio que el nocturno
+2. La imagen nocturna tiene más del 60% de sus píxeles concentrados en el primer tercio del rango de intensidades
+3. La imagen diurna presenta mejor distribución y aprovechamiento del rango dinámico disponible
+
+#### 6.2.3 Ecualización de Histograma
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/ecualizacion.png" alt="Imagen original vs ecualizada" width="600">
+</p>
+
+**Resultados visuales:**
+
+**Imagen original:**
+- Tonos concentrados en valores medios
+- Contraste moderado
+- Algunos detalles en sombras difíciles de apreciar
+
+**Imagen ecualizada:**
+- Contraste notablemente incrementado
+- Detalles en zonas oscuras más visibles (ventanas, texturas en sombra)
+- Áreas claras más brillantes, mejorando la diferenciación de elementos arquitectónicos
+- Mayor rango dinámico aprovechado
+
+#### 6.2.4 Análisis del Histograma Ecualizado
+
+<p align="center">
+    <img src="Rotacion_Traslacion_Ecualizacion/output/histograma_ecualizacion.png" alt="Comparación histograma original vs ecualizado" width="600">
+</p>
+
+**Comparación de distribuciones:**
+
+**Histograma original:**
+- Concentración en valores medios (100-180)
+- Subutilización de los extremos del rango
+- Picos pronunciados en valores específicos
+
+**Histograma ecualizado:**
+- Distribución más uniforme en todo el rango [0, 255]
+- Reducción de los picos originales
+- Mejor aprovechamiento de los extremos del rango tonal
+- Tiende hacia una distribución más plana, aunque no perfectamente uniforme (imposible en imágenes reales debido a correlaciones espaciales)
+
+**Efectos de la ecualización:**
+1. **Aumento del contraste global:** Los niveles de intensidad se redistribuyen para ocupar todo el rango disponible
+2. **Revelación de detalles:** Texturas y elementos en zonas oscuras se vuelven más distinguibles
+3. **Posible sobre-amplificación:** En algunas regiones puede generar un contraste excesivo o artefactos, especialmente en zonas con poco contenido textural
+
+### 6.3 Conclusiones sobre Histogramas y Ecualización
+
+1. **Los histogramas revelan características de iluminación:** La comparación entre imágenes diurnas y nocturnas muestra claramente cómo las condiciones de luz afectan la distribución de intensidades.
+
+2. **La ecualización mejora el contraste global:** Redistribuye las intensidades para utilizar todo el rango dinámico, revelando detalles en zonas oscuras y mejorando la percepción visual.
+
+3. **Limitaciones de la ecualización:** Aunque mejora el contraste, puede generar sobre-amplificación en regiones homogéneas y no es apropiada para todas las aplicaciones (especialmente en imágenes bien expuestas).
+
+4. **La ecualización es más efectiva en imágenes mal expuestas:** Imágenes con histogramas concentrados en regiones limitadas del rango tonal se benefician más de esta técnica.
+
+5. **Herramienta fundamental en pre-procesamiento:** La ecualización de histograma es una técnica estándar en pipelines de procesamiento de imágenes, especialmente antes de aplicar algoritmos de detección de características o reconocimiento de patrones.
 
 ---
 
@@ -627,8 +897,25 @@ En conjunto, ambos escenarios validaron la efectividad de **combinar métricas p
 
 ### 8.3 Transformaciones Geométricas
 
+- Las transformaciones geométricas (rotación, traslación y escalado) permiten modificar la posición, orientación y tamaño de las imágenes sin alterar su información estructural fundamental.
+
+- La combinación de múltiples transformaciones mediante matrices afines permite realizar operaciones complejas de manera eficiente en una única operación.
+
+- La visualización dinámica mediante secuencias animadas (GIF) es una herramienta efectiva para comprender el comportamiento progresivo de las transformaciones y cómo interactúan entre sí.
+
+- Las transformaciones geométricas son fundamentales en aplicaciones prácticas como registro de imágenes, alineación de vistas múltiples, corrección de perspectiva y aumentación de datos en machine learning.
 
 ### 8.4 Distribución de Intensidades e Histogramas
+
+- Los histogramas son herramientas fundamentales para analizar y comprender la distribución de intensidades en imágenes, revelando características de iluminación y exposición.
+
+- La comparación de histogramas entre imágenes diurnas y nocturnas evidencia las profundas diferencias en distribución tonal causadas por las condiciones de iluminación.
+
+- La ecualización de histograma es una técnica efectiva para mejorar el contraste global, redistribuyendo las intensidades para aprovechar todo el rango dinámico disponible.
+
+- La ecualización es especialmente útil en imágenes subexpuestas o con histogramas concentrados en rangos limitados, revelando detalles en zonas oscuras.
+
+- Esta técnica es una herramienta estándar en el pre-procesamiento de imágenes para visión por computador, normalización de contraste y mejora visual automática.
 
 
 ### 8.5 Segmentación de imágenes

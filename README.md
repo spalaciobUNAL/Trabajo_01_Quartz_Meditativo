@@ -19,7 +19,10 @@ Trabajo_01_Quartz_Meditativo/
 │   ├── Transformación_imagenes.ipynb     # Notebook de transformaciones
 │   ├── casa_dia.jpg                     # Imagen de fachada en día
 │   └── casa_noche.jpg                   # Imagen de fachada en noche
-├── Rotacion_Traslacion_Ecualizacion/    # Transformaciones geométricas (rotación, traslación) y ecualización de histograma
+├── Rotacion_Traslacion_Ecualizacion/    # Transformaciones geométricas y ecualización de histograma
+│   ├── input/                           # Imágenes de dia noche
+│   ├── output/                          # Resultados de transformaciones y ecualización de histograma
+│   └── Rotacion_Traslacion_Ecualizacion.ipynb 
 ├── Segmentacion/                         # Segmentación por color
 │   ├── segmentacion_por_color.ipynb     # Notebook de segmentación
 │   ├── input/                           # Imágenes de entrada
@@ -107,6 +110,7 @@ El proyecto utiliza las siguientes librerías principales:
 - **Pandas** (2.3.3): Análisis de datos
 - **JupyterLab** (>=4.0): Entorno de desarrollo interactivo
 - **Pillow**: Procesamiento de imágenes adicional
+- **ImageIO**: Creación de GIFs
 
 ## Autores
 

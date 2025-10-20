@@ -120,11 +120,45 @@ donde $(u_i, v_i)$ son las coordenadas observadas y $\hat{f}$ es la función de 
 
 ### 2.4 Transformaciones de Intensidad
 
-Las transformaciones de intensidad operan sobre los valores de los píxeles de manera independiente:
+Las transformaciones de intensidad son operaciones que modifican los valores de los píxeles de una imagen de manera independiente, sin considerar la información espacial de los píxeles vecinos. Estas transformaciones son fundamentales en el procesamiento digital de imágenes para mejorar la calidad visual, corregir problemas de iluminación y preparar imágenes para análisis posteriores.
 
-- **Ajuste de brillo:** $I_{out} = I_{in} + \beta$
-- **Ajuste de contraste:** $I_{out} = \alpha \cdot I_{in}$
-- **Corrección gamma:** $I_{out} = I_{in}^{\gamma}$
+#### 2.4.1 Ajuste de Brillo
+
+El ajuste de brillo modifica la luminosidad general de la imagen mediante la suma de una constante:
+
+$I_{out} = I_{in} + \beta$
+
+donde $\beta$ es el valor de brillo añadido. Valores positivos aclaran la imagen, mientras que valores negativos la oscurecen. Esta transformación es lineal y afecta uniformemente todos los píxeles.
+
+#### 2.4.2 Ajuste de Contraste
+
+El ajuste de contraste modifica la diferencia entre las intensidades claras y oscuras:
+
+$I_{out} = \alpha \cdot I_{in}$
+
+donde $\alpha$ es el factor de contraste. Valores $\alpha > 1$ aumentan el contraste, mientras que $0 < \alpha < 1$ lo reducen. Esta transformación lineal puede causar saturación en los extremos del rango de intensidades.
+
+#### 2.4.3 Corrección Gamma
+
+La corrección gamma es una transformación no lineal que ajusta la respuesta de intensidad de la imagen:
+
+$I_{out} = I_{in}^{\gamma}$
+
+donde $\gamma$ es el parámetro gamma. Esta transformación es particularmente útil para:
+- $\gamma < 1$: Aclarar imágenes oscuras y revelar detalles en sombras
+- $\gamma = 1$: Sin cambios (transformación identidad)
+- $\gamma > 1$: Oscurecer imágenes y mejorar el contraste en regiones iluminadas
+
+#### 2.4.4 Operaciones Aritméticas Entre Imágenes
+
+Las operaciones aritméticas entre imágenes permiten combinar información de múltiples fuentes:
+
+- **Suma:** $C = A + B$ - Combina información, puede causar saturación
+- **Resta:** $C = A - B$ - Resalta diferencias entre imágenes
+- **Multiplicación:** $C = A \cdot B$ - Efecto de enmascaramiento
+- **División:** $C = A / B$ - Normalización y detección de cambios
+
+Estas operaciones requieren manejo cuidadoso de la saturación y la división por cero.
 
 ### 2.5 Ecualización de Histograma
 
@@ -138,13 +172,40 @@ donde $M \times N$ es el tamaño de la imagen y $L$ es el número de niveles de 
 
 ### 2.6 Segmentación por Color
 
-La segmentación por color separa una imagen en regiones basándose en similitudes de color. El espacio de color HSV (Hue, Saturation, Value) es particularmente útil porque:
+#### 2.6.1 Fundamentos de color
 
-- **Hue (Matiz):** representa el color puro (0-180° en OpenCV)
-- **Saturation (Saturación):** intensidad del color (0-255)
-- **Value (Valor):** brillo del color (0-255)
+La **segmentación por color** separa una imagen en regiones basándose en similitudes cromáticas.  
+El **espacio de color HSV (Hue, Saturation, Value)** es particularmente útil porque desacopla el color puro de la iluminación:
 
-Este espacio facilita la segmentación porque el matiz es más robusto a cambios de iluminación que RGB.
+- **Hue (Matiz):** representa el color puro (0–180° en OpenCV)  
+- **Saturation (Saturación):** intensidad o pureza del color (0–255)  
+- **Value (Valor):** brillo o luminosidad (0–255)
+
+Este espacio facilita la segmentación porque el **matiz es más robusto a variaciones de iluminación** que el modelo RGB, permitiendo una umbralización más estable y generalizable entre imágenes con diferentes condiciones de luz.
+
+El espacio **Lab**, por su parte, es perceptualmente uniforme e independiente del dispositivo, lo que lo hace ideal para análisis cromáticos más precisos.  
+
+#### 2.6.2 Filtrado Gaussiano
+- Reduce ruido sin eliminar bordes importantes.  
+- Parámetro clave: desviación estándar (σ).  
+
+#### 2.6.3 Detección de bordes
+- **Sobel:** calcula derivadas espaciales.  
+- **Canny:** suavizado → gradiente → supresión no máxima → histéresis.
+
+#### 2.6.4 Morfología matemática
+- **Apertura:** elimina ruido pequeño.  
+- **Cierre:** rellena huecos.  
+- **Dilatación/Erosión:** controlan grosor de regiones.  
+- **Gradiente:** diferencia entre dilatación y erosión → resalta bordes.
+
+#### 2.6.5 Transformada de distancia
+- Mide distancia desde cada píxel del objeto al fondo.  
+- Los máximos locales se usan como marcadores para *Watershed*.
+
+#### 2.6.6. Algoritmo Watershed
+- Interpreta la imagen como una topografía.  
+- Inunda desde los marcadores hasta que las “cuencas” se encuentran, delimitando objetos.
 
 ---
 
@@ -213,7 +274,7 @@ K = [[3461.26    0.00  2292.76]
 - Error RMS: 1.2306 píxeles
 - Error porcentual (respecto a diagonal): 0.0213%
 
-#### 3.2.3 Análisis de los Parámetros
+#### 3.2.2 Análisis de los Parámetros
 
 ##### Longitudes Focales (fx, fy)
 
@@ -239,9 +300,9 @@ El punto principal está muy cerca del centro geométrico, lo que indica un buen
 
 ##### Coeficientes de Distorsión
 
-El coeficiente \(k_1 = 0.136 > 0\) indica **distorsión de barril**, característica típica de lentes angulares en smartphones. Los coeficientes de distorsión tangencial (\(p_1, p_2\)) son muy pequeños (~0.001), indicando un buen alineamiento entre la lente y el sensor.
+El coeficiente $k_1 = 0.136 > 0$ indica **distorsión de barril**, característica típica de lentes angulares en smartphones. Los coeficientes de distorsión tangencial $p_1, p_2$ son muy pequeños (~0.001), indicando un buen alineamiento entre la lente y el sensor.
 
-#### 3.2.4 Comparación de Calibraciones
+#### 3.2.3 Comparación de Calibraciones
 
 Se realizaron calibraciones con diferentes conjuntos de imágenes para evaluar el impacto de la calidad de imagen y la resolución:
 
@@ -258,7 +319,7 @@ Se realizaron calibraciones con diferentes conjuntos de imágenes para evaluar e
 
 2. **Importancia de la calidad de imagen:** A pesar de tener la misma resolución, `images/` (patrón en monitor) produjo mejor corrección que `images3/` (patrón impreso). Esto demuestra que la iluminación uniforme y el contraste son críticos para una buena calibración.
 
-#### 3.2.5 Corrección de Distorsión
+#### 3.2.4 Corrección de Distorsión
 
 Se aplicó la corrección de distorsión a las imágenes utilizando los parámetros calibrados, generando GIFs comparativos alternando entre imágenes originales y corregidas, donde se aprecia claramente el efecto de la corrección.
 
@@ -273,7 +334,7 @@ Se aplicó la corrección de distorsión a las imágenes utilizando los parámet
 - En las esquinas de las imágenes corregidas se observa un ligero estiramiento, que es el efecto esperado al "empujar" los píxeles hacia afuera para enderezar las líneas curvadas
 
 
-#### 3.2.6 Validación con Imágenes de Prueba
+#### 3.2.5 Validación con Imágenes de Prueba
 
 Se validó la calibración aplicándola a fotos tomadas con la misma cámara, como una imagen de un PLC con líneas verticales, comprobando la corrección efectiva de la distorsión.
 
@@ -302,6 +363,98 @@ Esto confirma que los parámetros calibrados pueden aplicarse exitosamente a cua
 
 ## 4. Transformaciones de Intensidad
 
+### 4.1 Metodología
+
+#### 4.1.1 Materiales y Equipamiento
+
+Para la implementación de transformaciones de intensidad se utilizaron dos fotografías de la misma fachada capturadas en condiciones de iluminación diurna y nocturna con el mismo encuadre.
+
+<p align="center">
+    <img src="Transformaciones_Dia_Noche/res/fachada_dia_noche.png" alt="Fachada Día y Noche" width="600">
+</p>
+
+
+#### 4.1.2 Implementación de las Transformaciones
+
+Se implementaron cuatro tipos de transformaciones de intensidad a nivel de píxel:
+
+##### 4.1.2.1 Ajuste de Brillo
+
+Se aplicó la transformación lineal: $I_{out} = I_{in} + \beta$
+
+Donde $\beta$ es el valor de brillo añadido. Se probaron tres niveles: 50, 100 y 150.
+
+##### 4.1.2.2 Ajuste de Contraste
+
+Se implementó la transformación: $I_{out} = \alpha \cdot I_{in}$
+
+Donde $\alpha$ es el factor de contraste. Se evaluaron valores de 1.4, 2 y 3.
+
+##### 4.1.2.3 Corrección Gamma
+
+Se aplicó la transformación no lineal: $I_{out} = I_{in}^{\gamma}$
+
+Se probaron valores de gamma: 0.5, 1.0 y 1.7.
+
+##### 4.1.2.4 Operaciones Aritméticas Entre Imágenes
+
+Se realizaron operaciones elemento a elemento entre las imágenes de día y noche:
+- Suma: $C = A + B$
+- Resta: $C = A - B$  
+- Multiplicación: $C = A \cdot B$
+- División: $C = A / B$ (con manejo de división por cero)
+
+#### 4.1.3 Métricas de Evaluación
+
+Se realizó una evaluación cualitativa visual analizando:
+- Preservación de detalles en diferentes regiones de la imagen
+- Efectos de saturación y pérdida de información
+- Diferencias en el comportamiento entre imágenes diurnas y nocturnas
+- Aparición de artefactos o distorsiones
+
+### 4.2 Resultados
+
+#### 4.2.1 Ajuste de Brillo
+
+**Resultados por nivel de brillo:**
+
+- **β = 50:** Mejora la visibilidad en zonas oscuras sin saturar áreas claras. Efecto moderado y controlado.
+- **β = 100:** Aclara notablemente la imagen, pero comienzan a perderse detalles en regiones ya iluminadas, especialmente en la imagen de día.
+- **β = 150:** Provoca saturación generalizada, predominio de blancos y pérdida de información en ambas imágenes.
+
+**Comparación día/noche:** El mismo parámetro afecta de manera diferente según la imagen original. En la imagen de día, el aumento de brillo produce saturación rápida en zonas claras. En la imagen de noche, el incremento revela detalles en áreas oscuras, pero las zonas previamente iluminadas por lámparas se saturan antes que en la imagen de día.
+
+#### 4.2.2 Ajuste de Contraste
+
+**Resultados por factor de contraste:**
+
+- **α = 1.4:** La imagen mantiene detalle y mejora la percepción de texturas. Mejora moderada del contraste.
+- **α = 2:** Las áreas claras se vuelven mucho más brillantes y las oscuras más profundas, perdiéndose información en ambos extremos.
+- **α = 3:** La saturación es extrema: predominan blancos y negros, desaparecen gradientes y se pierde información visual relevante.
+
+**Comparación día/noche:** En la imagen de día, el aumento de contraste provoca saturación rápida en cielos y paredes claras. En la imagen de noche, las zonas iluminadas por lámparas se saturan antes, generando áreas blancas sin detalle, mientras que las sombras se vuelven completamente negras.
+
+#### 4.2.3 Corrección Gamma
+
+**Resultados por valor de gamma:**
+
+- **γ = 0.5:** Aclara considerablemente la imagen, revelando detalles en sombras pero saturando áreas iluminadas.
+- **γ = 1.0:** No produce cambios perceptibles (transformación identidad).
+- **γ = 1.7:** Oscurece la imagen, intensificando las sombras y perdiendo información en regiones oscuras.
+
+**Comparación día/noche:** El mismo valor de gamma afecta de forma diferente según la distribución de intensidades original. En la imagen de día, la corrección gamma aclara u oscurece de manera más homogénea; en la imagen de noche, los cambios son más drásticos en zonas con iluminación artificial, generando saturación o pérdida de detalle localizada.
+
+#### 4.2.4 Operaciones Aritméticas Entre Imágenes
+
+**Resultados por operación:**
+
+- **Suma (A+B):** La imagen resultante es mucho más brillante, con predominio de zonas claras y tendencia a la saturación en áreas donde ambas imágenes ya tenían alta intensidad. Se pierden detalles en regiones iluminadas y las sombras se atenúan.
+
+- **Resta (A-B):** Resalta las diferencias entre ambas imágenes. Las zonas que son más claras en la imagen de día y oscuras en la de noche aparecen brillantes, mientras que las áreas similares se oscurecen. Se enfatizan los cambios de iluminación y estructura.
+
+- **Multiplicación (A*B):** Oscurece la imagen, ya que solo las zonas donde ambas imágenes tienen valores altos permanecen visibles. Las sombras y áreas oscuras se intensifican, perdiendo información en sectores poco iluminados.
+
+- **División (A/B):** Genera contraste extremo y efectos de saturación, especialmente en zonas donde los valores de la imagen de noche son bajos. Aparecen artefactos y colores irreales en áreas con diferencias grandes de intensidad.
 
 
 ---
@@ -316,11 +469,139 @@ Esto confirma que los parámetros calibrados pueden aplicarse exitosamente a cua
 
 ---
 
-## 7. Segmentación de Imágenes
+## 7. Segmentación de imágenes
 
+### 7.1 Metodología
 
+#### 7.1.1 Materiales y Equipamiento
+
+Para la práctica de segmentación por color se emplearon los siguientes elementos:
+
+- **Cámara:** Iphone 15 cámara 0.5
+- **Entorno de captura 1:** escritorio con objetos de distintos colores (verde, gris, blanco, negro y amarillo)  
+- **Entorno de captura 2:** estantería de la Biblioteca Efe Gómez, Universidad Nacional de Colombia – Sede Medellín  
+
+#### 7.1.2 Imágenes Utilizadas
+
+1. **Imagen 1 — Escritorio:** objetos con colores bien definidos sobre fondo de madera.  
+2. **Imagen 2 — Estantería:** libros de múltiples colores y texturas, útiles para probar la robustez del algoritmo.
+
+#### 7.1.3 Implementación del Algoritmo
+
+El procedimiento de segmentación se desarrolló en **Python con OpenCV**, siguiendo los pasos:
+
+##### 7.1.3.1 Lectura y Conversión de la Imagen
+
+Se leyó la imagen en formato BGR (por defecto en OpenCV) y se convirtió al espacio de color HSV mediante la función:
+
+```python
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+```
+
+##### 7.1.3.2 Definición de Rangos de Color
+
+Para aislar los colores de interés, se definieron valores mínimos y máximos para cada componente del espacio HSV (tono, saturación y valor):
+
+```python
+lower = np.array([H_min, S_min, V_min])
+upper = np.array([H_max, S_max, V_max])
+```
+
+Estos rangos determinan qué píxeles pertenecen al color objetivo dentro de la imagen.
+
+##### 7.1.3.3 Creación de la Máscara Binaria
+
+Con los valores definidos, se generó una máscara binaria que identifica las regiones de la imagen que cumplen con el rango de color especificado:
+
+```python
+mask = cv2.inRange(hsv, lower, upper)
+```
+
+##### 7.1.3.4 Aplicación de la Máscara a la Imagen Original
+
+La máscara se aplicó sobre la imagen original para visualizar únicamente las zonas detectadas del color objetivo:
+
+```python
+result = cv2.bitwise_and(img, img, mask=mask)
+```
+
+##### 7.1.3.5 Filtrado Morfológico y Refinamiento
+
+Se aplicaron operaciones morfológicas de apertura (`cv2.MORPH_OPEN`) para eliminar ruido y suavizar los bordes de las regiones segmentadas:
+
+```python
+kernel = np.ones((5,5), np.uint8)
+mask_clean = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+```
+
+##### 7.1.3.6 Espacio de Color Utilizado
+
+El **espacio HSV (Hue, Saturation, Value)** fue elegido por su capacidad para separar la información del color (tono) de la iluminación, permitiendo una segmentación más robusta frente a cambios de luz.
+
+#### 7.1.4 Métricas de Evaluación
+
+Se realizó una **evaluación visual cualitativa**, analizando:
+
+- La precisión en la detección del color objetivo.  
+- La exclusión de regiones con tonos similares.  
+- La consistencia de los resultados en condiciones lumínicas distintas.  
+
+Además, se estimó la **proporción de píxeles segmentados** como indicador de la extensión del área detectada respecto al total de la imagen.
 
 ---
+
+### 7.2 Resultados
+
+El proceso de segmentación implementado evidenció la eficacia de los modelos **HSV** y **Lab** para discriminar objetos en función de sus características cromáticas, aunque su rendimiento dependió significativamente de un **ajuste manual iterativo**. Durante el desarrollo, los rangos de tono, saturación y brillo se refinaron progresivamente mediante inspección visual, ajustando los valores mínimos y máximos hasta alcanzar la mejor separación posible entre los objetos y el fondo. Este enfoque permitió optimizar la precisión de la clasificación frente a colores difusos o con mezclas tonales, siguiendo los lineamientos de **Gonzalez y Woods (2018)**, **Pratt (2007)** y **Sonka, Hlavac y Boyle (2014)**
+
+#### 7.2.1 Segmentación en el Entorno de Escritorio
+
+<p align="center">
+    <img src="Segmentacion/input/office.jpg" alt="Segmentación en escritorio" width="600">
+</p>
+
+Se evaluaron distintos rangos HSV para los colores predominantes:
+
+| Color objetivo | Rango HSV aproximado | Resultado visual |
+|----------------|----------------------|------------------|
+| Verde (carcasa iPad) | H: [35, 85], S: [50, 255], V: [50, 255] | Segmentación precisa, buen contraste |
+| Amarillo (post-it) | H: [20, 40], S: [80, 255], V: [80, 255] | Detección clara con leve ruido por reflejos |
+| Blanco (hoja) | H: [0, 180], S: [0, 20], V: [220, 255] | Correcta segmentación bajo buena iluminación |
+
+Para esta escena, pese a la baja resolución, la presencia de sombras y reflejos, el modelo logró una segmentación satisfactoria en cinco categorías cromáticas principales. Las dificultades se presentaron principalmente en las regiones oscuras, donde los tonos negro y marrón de la madera tendían a confundirse por su similitud espectral. Estas limitaciones fueron parcialmente mitigadas mediante el uso del espacio **Lab**, que ofrece una mejor separación perceptual al considerar la distancia estadística entre los canales *a* (verde–rojo) y *b* (azul–amarillo). La aplicación de **operaciones morfológicas** (apertura, cierre y dilatación) permitió eliminar ruido de fondo y consolidar las regiones segmentadas, mejorando la continuidad espacial y la definición de bordes (Burger & Burge, 2016; Russ, 2016).
+
+Además, se implementaron operadores de **gradiente Sobel y Canny** para destacar bordes relevantes, combinados con la **transformada de distancia** y el **algoritmo Watershed**, lo que permitió separar objetos adyacentes manteniendo la integridad de sus contornos. Este enfoque que combina modelos perceptuales y técnicas geométricas, coincide con las recomendaciones de **Bradski y Kaehler (2008)** y **Gonzalez y Woods (2018)**, quienes resaltan la importancia de integrar la interpretación humana y la calibración manual en las etapas iniciales del proceso. La interacción entre observación visual y refinamiento computacional resultó clave para obtener modelos más robustos ante variaciones de color, textura e iluminación, en concordancia con la documentación oficial de **OpenCV (2023)**.
+
+---
+
+#### 7.2.2 Segmentación en la Estantería de la Biblioteca
+
+<p align="center">
+    <img src="Segmentacion/input/books.jpg" alt="Segmentación en estantería de libros" width="600">
+</p>
+
+Se realizó la segmentación de los tonos **azules** y **verdes** de las carátulas de los libros:
+
+| Color objetivo | Rango HSV aproximado | Observaciones |
+|----------------|----------------------|----------------|
+| Azul | H: [90, 130], S: [80, 255], V: [60, 255] | Segmentación efectiva en libros con tonos uniformes |
+| Verde | H: [40, 80], S: [50, 255], V: [50, 255] | Resultados aceptables; leve confusión con tonos cian |
+
+Las variaciones de brillo y los reflejos afectaron la homogeneidad de la detección, aunque el método permitió distinguir grupos de libros según su color predominante.
+
+
+#### 7.2.4 Comparación entre escenarios
+
+La comparación entre las fotografías del **escritorio (office)** y la **estantería de la biblioteca (books)** permitió evaluar el comportamiento del algoritmo de segmentación bajo condiciones visuales y estructurales contrastantes.  
+
+En el caso de *office*, la homogeneidad del fondo y la presencia de objetos con colores uniformes y contornos bien definidos (verde-limón, blanco, gris oscuro y negro) facilitaron la calibración de umbrales tanto en el espacio **HSV**. En contraste, la imagen *books* que contiene aproximadamente 168 libros distribuidos en varios estantes representó un desafío mayor debido a su complejidad geométrica, densidad de elementos y similitud cromática entre los libros y la estantería. La interacción entre reflejos, sombras y variaciones de brillo generó un nivel considerable de ruido, afectando la precisión de los bordes y la coherencia de las máscaras, especialmente en tonalidades oscuras como azul y marrón.  
+
+Para mejorar la discriminación, se aplicó un **realce de saturación (books_boosted)** que incrementó el contraste radiométrico entre los colores, seguido de operaciones morfológicas de apertura y cierre. Esta combinación mejoró notablemente la segmentación de los libros, confirmando que el **contraste radiométrico** y la **uniformidad de iluminación** son determinantes para la calidad de la segmentación (Gonzalez & Woods, 2018).  
+
+Asimismo, se comprobó que los **colores cercanos en tono pero distintos en luminancia** tienden a solaparse en el espacio **HSV**, mientras que el modelo **Lab** ofrece una mejor discriminación perceptual gracias a su representación más uniforme del color. Las operaciones morfológicas de apertura y dilatación fueron esenciales para eliminar artefactos residuales, unir regiones fragmentadas y fortalecer la definición de los bordes (Russ, 2016).  
+
+En conjunto, ambos escenarios validaron la efectividad de **combinar métricas perceptuales (HSV–Lab)** con **operaciones morfológicas y gradientes**. Esta estrategia resultó especialmente robusta en escenas simples con objetos bien delimitados, pero su rendimiento disminuyó en entornos con **alta complejidad estructural y tonal**, como la estantería. Futuras mejoras podrían integrar **algoritmos de aprendizaje no supervisado** (*k-means*, *mean shift* o *GMM*) que permitan ajustar los umbrales de color de manera automática, reduciendo la dependencia del ajuste manual y aumentando la reproducibilidad de los resultados (Bradski & Kaehler, 2008).
+
 
 ## 8. Conclusiones
 
@@ -334,13 +615,48 @@ Esto confirma que los parámetros calibrados pueden aplicarse exitosamente a cua
 
 - Se propone el uso de error relativo (porcentual respecto a la diagonal) como métrica más representativa que el error absoluto en píxeles.
 
+### 8.2 Transformaciones de Intensidad
+
+- Las transformaciones de intensidad son herramientas fundamentales para corregir problemas de iluminación y optimizar el contraste visual.
+
+- Las transformaciones lineales (brillo y contraste) requieren valores moderados para evitar saturación, mientras que la corrección gamma (no lineal) es la más versátil para adaptarse a diferentes distribuciones de intensidad.
+
+- Las operaciones aritméticas entre imágenes revelan diferencias estructurales y lumínicas, siendo la resta útil para detectar cambios y la multiplicación para enmascaramiento.
+
+- Los mismos parámetros de transformación producen efectos diferentes según la distribución original de intensidades, confirmando la importancia de adaptar los parámetros al contexto específico de cada imagen.
+
+### 8.3 Transformaciones Geométricas
+
+
+### 8.4 Distribución de Intensidades e Histogramas
+
+
+### 8.5 Segmentación de imágenes
+
+- Pese a las limitaciones, se pudo validar la eficacia de **combinar métricas perceptuales (HSV–Lab)** con **gradientes y operaciones morfológicas**, demostrando la robustez del enfoque para escenarios sencillos (objetos separados, bien delimitados y de textura uniforme). Sin embargo, su rendimiento disminuye en escenas con estructuras repetitivas y variaciones tonales sutiles. Futuras mejoras podrían incluir la integración de **algoritmos de aprendizaje no supervisado**, como *k-means* o *mean shift*, que permitan adaptar automáticamente los umbrales y reducir la dependencia del ajuste manual (Bradski & Kaehler, 2008).
+
 ---
 
 ## 9. Referencias
 
-OpenCV Documentation. (2024). Camera Calibration and 3D Reconstruction. Recuperado de https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html
+Bradski, G., & Kaehler, A. (2008). Learning OpenCV: Computer Vision with the OpenCV Library. O’Reilly Media.
+
+Burger, W., & Burge, M. J. (2016). Digital Image Processing: An Algorithmic Introduction Using Java (2nd ed.). Springer.
+
+Gonzalez, R. C., & Woods, R. E. (2018). Digital Image Processing (4th ed.). Pearson.
+
+OpenCV Documentation. (2023). Image Processing in OpenCV. OpenCV. https://docs.opencv.org/
+
+OpenCV Documentation. (2024). Camera Calibration and 3D Reconstruction. https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html
+
+Pratt, W. K. (2007). Digital Image Processing: PIKS Scientific Inside (4th ed.). Wiley-Interscience.
+
+Russ, J. C. (2016). The Image Processing Handbook (7th ed.). CRC Press.
+
+Sonka, M., Hlavac, V., & Boyle, R. (2014). Image Processing, Analysis, and Machine Vision (4th ed.). Cengage Learning.
 
 Zhang, Z. (2000). A flexible new technique for camera calibration. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 22(11), 1330-1334. https://doi.org/10.1109/34.888718
+
 
 ---
 

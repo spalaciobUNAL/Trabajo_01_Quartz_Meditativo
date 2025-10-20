@@ -34,7 +34,7 @@ Trabajo_01_Quartz_Meditativo/
 
 ### Reporte técnico del trabajo
 > [!IMPORTANT]
-> [Reporte técnico del trabajo](https://github.com/spalaciobUNAL/Trabajo_01_Quartz_Meditativo/blob/main/Trabajo_01.md)
+> [Reporte técnico del trabajo](https://github.com/spalaciobUNAL/Trabajo_01_Quartz_Meditativo/blob/main/Trabajo_01.md) (ver en un previsualizador que permita ver ecuaciones en .md (e.g vscode))
 
 ## Requisitos del Sistema
 
